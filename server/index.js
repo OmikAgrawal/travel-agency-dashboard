@@ -2,6 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import pg from 'pg';
 import dotenv from 'dotenv';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 
 dotenv.config(); // This looks for .env in the folder where you run the command
 
@@ -36,6 +38,34 @@ app.get('/api/test-db', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+
+// REGISTER ROUTE (To create your Admin account)
+app.post('/api/auth/register', async (req, res) => {
+    try {
+        const { username, email, password } = req.body;
+
+        // 1. Check if user exists
+        const user = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
+        if (user.rows.length > 0) return res.status(401).json({ error: "User already exists" });
+
+        // 2. Hash the password
+        const saltRound = 10;
+        const salt = await bcrypt.genSalt(saltRound);
+        const bcryptPassword = await bcrypt.hash(password, salt);
+
+        // 3. Insert into DB
+        const newUser = await pool.query(
+            "INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING *",
+            [username, email, bcryptPassword]
+        );
+
+        res.json({ message: "Admin registered successfully!" });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send("Server error");
+    }
+});
+
 
 // CREATE a new trip
 app.post('/api/trips', async (req, res) => {
