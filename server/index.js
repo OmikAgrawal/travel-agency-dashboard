@@ -4,6 +4,7 @@ import pg from 'pg';
 import dotenv from 'dotenv';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import authorize from "./middleware/authorize.js";
 
 dotenv.config(); // This looks for .env in the folder where you run the command
 
@@ -102,7 +103,7 @@ app.post('/api/auth/login', async (req, res) => {
 
 
 // CREATE a new trip
-app.post('/api/trips', async (req, res) => {
+app.post('/api/trips', authorize, async (req, res) => {
     try {
         // 1. Destructure the data coming from the frontend (req.body)
         const { title, description, location, price, image_url, category } = req.body;
@@ -133,7 +134,7 @@ app.get('/api/trips', async (req, res) => {
 });
 
 // 3. UPDATE a trip
-app.put('/api/trips/:id', async (req, res) => {
+app.put('/api/trips/:id', authorize, async (req, res) => {
     try {
         const { id } = req.params; // Get ID from URL
         const { title, description, location, price, image_url, category } = req.body;
@@ -155,7 +156,7 @@ app.put('/api/trips/:id', async (req, res) => {
 });
 
 // 4. DELETE a trip
-app.delete('/api/trips/:id', async (req, res) => {
+app.delete('/api/trips/:id', authorize, async (req, res) => {
     try {
         const { id } = req.params;
         const deleteTrip = await pool.query("DELETE FROM trips WHERE id = $1", [id]);
