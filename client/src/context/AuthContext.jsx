@@ -5,14 +5,14 @@ export const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true); // 1. Start as true
 
-    // Check if a token exists in local storage when the app starts
     useEffect(() => {
         const token = localStorage.getItem("token");
         if (token) {
             setIsAuthenticated(true);
-            // You could also decode the token here to get the username
         }
+        setLoading(false); // 2. Done checking, set to false
     }, []);
 
     const login = (token, username) => {
@@ -28,7 +28,8 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ isAuthenticated, user, login, logout }}>
+        // 3. Pass loading in the value
+        <AuthContext.Provider value={{ isAuthenticated, user, login, logout, loading }}>
             {children}
         </AuthContext.Provider>
     );

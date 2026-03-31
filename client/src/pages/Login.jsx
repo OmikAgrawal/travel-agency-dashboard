@@ -1,4 +1,5 @@
 import React, { useState, useContext } from 'react';
+import { useNavigate } from 'react-router-dom'; // 1. Import this
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 
@@ -6,15 +7,21 @@ const Login = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const { login } = useContext(AuthContext);
+    const navigate = useNavigate(); // 2. Initialize the GPS
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
             const res = await axios.post("http://localhost:5000/api/auth/login", { email, password });
+
+            // 3. Update the context first
             login(res.data.token, res.data.username);
-            alert("Login Successful!");
+
+            // 4. Manually tell the browser to move to the dashboard
+            navigate("/dashboard");
+
         } catch (err) {
-            alert(err.response.data.error || "Login Failed");
+            alert(err.response?.data?.error || "Login Failed");
         }
     };
 
