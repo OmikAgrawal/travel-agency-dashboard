@@ -3,10 +3,13 @@ import { useContext } from 'react';
 import { AuthContext } from './context/AuthContext';
 import Login from './pages/Login';
 import Sidebar from './components/Sidebar';
+import { useState } from 'react'; // 1. Add useState
+import { Menu, X } from 'lucide-react'; // 2. Add Menu and X icons
 
 // A helper component to protect our private pages
 const PrivateRoute = ({ children }) => {
     const { isAuthenticated, loading } = useContext(AuthContext);
+
 
     // If we are still checking the token, show a blank screen or a spinner
     if (loading) return <div className="h-screen flex items-center justify-center">Loading...</div>;
@@ -15,31 +18,55 @@ const PrivateRoute = ({ children }) => {
 };
 
 function App() {
-    const { isAuthenticated } = useContext(AuthContext);
+    const { isAuthenticated, loading } = useContext(AuthContext);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false); // 3. The "Switch"
+
+    const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+    const closeSidebar = () => setIsSidebarOpen(false);
+
+    if (loading) return <div className="h-screen flex items-center justify-center">Loading...</div>;
 
     return (
         <Router>
-            <div className="flex">
-                {/* Only show the Sidebar if the user is logged in */}
-                {isAuthenticated && <Sidebar />}
+            <div className="flex min-h-screen bg-gray-100 w-full">
 
-                <div className="flex-1 bg-gray-100 min-h-screen">
-                    <Routes>
-                        <Route path="/login" element={!isAuthenticated ? <Login /> : <Navigate to="/dashboard" />} />
+                {/* The Sidebar (Always takes its 64px width on Large screens) */}
+                {isAuthenticated && (
+                    <Sidebar isOpen={isSidebarOpen} closeSidebar={closeSidebar} />
+                )}
 
-                        {/* All Protected Routes go inside here */}
-                        <Route path="/dashboard" element={
-                            <PrivateRoute>
-                                <div className="p-8">
-                                    <h1 className="text-3xl font-bold text-gray-800">Welcome to your Dashboard!</h1>
-                                    <p className="text-gray-600">This page is only visible because you are logged in.</p>
-                                </div>
-                            </PrivateRoute>
-                        } />
+                {/* The Main Content Area */}
+                <div className="flex-1 w-full relative">
 
-                        {/* Default redirect */}
-                        <Route path="*" element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} />} />
-                    </Routes>
+                    {/* Hamburger Button: Moved slightly for better spacing */}
+                    {isAuthenticated && (
+                        <button
+                            onClick={toggleSidebar}
+                            className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-gray-900 text-white rounded-lg shadow-md"
+                        >
+                            {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
+                        </button>
+                    )}
+
+                    {/* Page Content: Added pt-20 (padding-top) for mobile to clear the button */}
+                    <main className={`p-8 ${isAuthenticated ? 'pt-20 lg:pt-8' : ''}`}>
+                        <Routes>
+                            <Route path="/login" element={!isAuthenticated ? <Login /> : <Navigate to="/dashboard" />} />
+
+                            {/* All Protected Routes go inside here */}
+                            <Route path="/dashboard" element={
+                                <PrivateRoute>
+                                    <div className="p-8">
+                                        <h1 className="text-3xl font-bold text-gray-800">Welcome to your Dashboard!</h1>
+                                        <p className="text-gray-600">This page is only visible because you are logged in.</p>
+                                    </div>
+                                </PrivateRoute>
+                            } />
+
+                            {/* Default redirect */}
+                            <Route path="*" element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} />} />
+                        </Routes>
+                    </main>
                 </div>
             </div>
         </Router>
