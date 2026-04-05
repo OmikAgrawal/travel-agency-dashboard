@@ -5,6 +5,7 @@ import Login from './pages/Login';
 import Sidebar from './components/Sidebar';
 import { useState } from 'react'; // 1. Add useState
 import { Menu, X } from 'lucide-react'; // 2. Add Menu and X icons
+import ManageTrips from './pages/ManageTrips';
 
 // A helper component to protect our private pages
 const PrivateRoute = ({ children }) => {
@@ -60,6 +61,12 @@ function App() {
                                         <h1 className="text-3xl font-bold text-gray-800">Welcome to your Dashboard!</h1>
                                         <p className="text-gray-600">This page is only visible because you are logged in.</p>
                                     </div>
+                                </PrivateRoute>
+                            } />
+
+                            <Route path="/trips" element={
+                                <PrivateRoute>
+                                    <ManageTrips />
                                 </PrivateRoute>
                             } />
 

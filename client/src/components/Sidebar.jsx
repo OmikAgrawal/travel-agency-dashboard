@@ -1,9 +1,11 @@
 import { LayoutDashboard, PlaneTakeoff, Users, Settings, LogOut } from 'lucide-react';
 import { useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
+import { Link, useLocation } from 'react-router-dom';
 
 const Sidebar = ({ isOpen, closeSidebar }) => {
     const { logout } = useContext(AuthContext);
+    const location = useLocation();
 
     const menuItems = [
         { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
@@ -37,17 +39,19 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
                     {menuItems.map((item, index) => {
                         const Icon = item.icon;
                         return (
-                            <div
+                            <Link
+                                to={item.path}
                                 key={index}
-                                onClick={() => {
-                                    // Navigate logic here (we will add React Router Link later)
-                                    closeSidebar(); // 3. Closes sidebar after clicking
-                                }}
-                                className="flex items-center gap-3 p-3 rounded-xl cursor-pointer mb-3 hover:bg-gray-800 text-gray-400 hover:text-white transition-all"
+                                onClick={closeSidebar}
+                                className={`flex items-center gap-3 p-3 rounded-xl mb-3 transition-all ${
+                                    location.pathname === item.path
+                                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20'
+                                        : 'hover:bg-gray-800 text-gray-400 hover:text-white'
+                                }`}
                             >
                                 <Icon size={20} />
                                 <span className="font-medium">{item.label}</span>
-                            </div>
+                            </Link>
                         );
                     })}
                 </nav>
