@@ -9,8 +9,8 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
 
     const menuItems = [
         { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
-        { icon: PlaneTakeoff, label: 'Manage Trips', path: '/trips' },
         { icon: Users, label: 'Customers', active: false },
+        { icon: PlaneTakeoff, label: 'AI Trips', path: '/AITrips' },
         { icon: Settings, label: 'Settings', active: false },
     ];
 

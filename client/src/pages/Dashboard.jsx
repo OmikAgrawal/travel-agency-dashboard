@@ -4,7 +4,7 @@ import { Plus, MapPin, TrendingUp, TrendingDown } from 'lucide-react';
 import TripCard from '../components/TripCard';
 import AddTripModal from '../components/AddTripModal'; // 1. Import it
 
-const ManageTrips = () => {
+const Dashboard = () => {
     const [trips, setTrips] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false); // 2. Modal State
     const [loading, setLoading] = useState(true);
@@ -83,4 +83,4 @@ const StatCard = ({ title, value, trend, up, color }) => (
     </div>
 );
 
-export default ManageTrips;
+export default Dashboard;

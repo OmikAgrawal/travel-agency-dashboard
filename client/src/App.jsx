@@ -5,7 +5,8 @@ import Login from './pages/Login';
 import Sidebar from './components/Sidebar';
 import { useState } from 'react'; // 1. Add useState
 import { Menu, X } from 'lucide-react'; // 2. Add Menu and X icons
-import ManageTrips from './pages/ManageTrips';
+import Dashboard from './pages/Dashboard.jsx';
+import AITrips from "./pages/AITrips.jsx";
 
 // A helper component to protect our private pages
 const PrivateRoute = ({ children }) => {
@@ -57,18 +58,23 @@ function App() {
                             {/* All Protected Routes go inside here */}
                             <Route path="/dashboard" element={
                                 <PrivateRoute>
-                                    <div className="p-8">
-                                        <h1 className="text-3xl font-bold text-gray-800">Welcome to your Dashboard!</h1>
-                                        <p className="text-gray-600">This page is only visible because you are logged in.</p>
-                                    </div>
+                                    <Dashboard />
                                 </PrivateRoute>
                             } />
 
-                            <Route path="/trips" element={
+                            <Route path="/AITrips" element={
                                 <PrivateRoute>
-                                    <ManageTrips />
+                                    <AITrips />
                                 </PrivateRoute>
                             } />
+
+
+
+                            {/*<Route path="/trips" element={*/}
+                            {/*    <PrivateRoute>*/}
+                            {/*        <Dashboard />*/}
+                            {/*    </PrivateRoute>*/}
+                            {/*} />*/}
 
                             {/* Default redirect */}
                             <Route path="*" element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} />} />

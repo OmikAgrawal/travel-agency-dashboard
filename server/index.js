@@ -5,8 +5,11 @@ import dotenv from 'dotenv';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import authorize from "./middleware/authorize.js";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 dotenv.config(); // This looks for .env in the folder where you run the command
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 const { Pool } = pg;
 const app = express();
@@ -165,6 +168,58 @@ app.delete('/api/trips/:id', authorize, async (req, res) => {
     } catch (err) {
         console.error(err.message);
         res.status(500).json({ error: "Server error during deletion" });
+    }
+});
+
+app.post("/api/trips/ai-generate", async (req, res) => {
+
+    console.log("Body received:", req.body); // Check if this is empty or nested!
+    const { location, duration, criteria } = req.body;
+
+    if (!location || !duration) {
+        return res.status(400).json({ error: "Missing location or duration" });
+    }
+
+    try {
+        const model = genAI.getGenerativeModel({
+            model: "gemini-3-flash-preview"
+        });
+
+        const prompt = `Create a travel trip for ${location} for ${duration} days. 
+        Additional criteria: ${criteria}. 
+        Return strictly JSON only, no introductory text: 
+        {"title": "...", "description": "...", "price": 0, "location": "...", "category": "Adventure"}`;
+
+        const result = await model.generateContent(prompt);
+        const responseText = result.response.text();
+        const jsonMatch = responseText.match(/\{[\s\S]*\}/); // Finds the first '{' and last '}'
+
+        if (jsonMatch) {
+            const tripData = JSON.parse(jsonMatch[0]);
+
+            // 3. Insert into DB (Ensure 'price' is a number)
+            const newTrip = await pool.query(
+                "INSERT INTO trips (title, description, location, price, category) VALUES ($1, $2, $3, $4, $5) RETURNING *",
+                [
+                    tripData.title,
+                    tripData.description,
+                    tripData.location,
+                    Number(tripData.price) || 0, // Fallback to 0 if price isn't a number
+                    tripData.category || 'Adventure'
+                ]
+            );
+
+            res.json(newTrip.rows[0]);
+        } else {
+            throw new Error("No JSON found in AI response");
+        }
+
+
+
+    } catch (err) {
+        // This will print the EXACT error in your VS Code Terminal
+        console.error("SERVER CRASH ERROR:", err.message);
+        res.status(500).json({ error: "Internal Server Error" });
     }
 });
 
