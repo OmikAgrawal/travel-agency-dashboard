@@ -4,7 +4,7 @@ import { Sparkles, Loader2 } from 'lucide-react';
 import TripCard from '../components/TripCard';
 
 const AITrips = () => {
-    const [query, setQuery] = useState({ location: '', duration: '', criteria: '' });
+    const [query, setQuery] = useState({ location: '', duration: '', criteria: '',price: '',category: ''});
     const [loading, setLoading] = useState(false);
     const [newTrip, setNewTrip] = useState(null);
 
@@ -42,6 +42,24 @@ const AITrips = () => {
                         className="p-3 bg-gray-50 border rounded-xl"
                         onChange={(e) => setQuery({...query, duration: e.target.value})}
                     />
+
+                    <select
+                        className="p-3 bg-gray-50 border rounded-xl"
+                        onChange={(e) => setQuery({...query, category: e.target.value})}>
+                        <option value="">Select your Vibe!!</option>
+                        <option value="Adventure and Exploration">Adventure and Exploration</option>
+                        <option value="Leisure and Relaxation">Leisure and Relaxation</option>
+                        <option value="Cultural and Educational">Cultural and Educational</option>
+                        <option value="Social and Celebration">Social and Celebration</option>
+                        <option value="Spiritual and Wellness">Spiritual and Wellness</option>
+                    </select>
+
+                    <input
+                        placeholder="Under ₹"
+                        className="p-3 bg-gray-50 border rounded-xl"
+                        onChange={(e) => setQuery({...query, price: e.target.value})}
+                    />
+
                 </div>
                 <textarea
                     placeholder="e.g. I love trekking, need it to be budget friendly, and prefer vegetarian food options."

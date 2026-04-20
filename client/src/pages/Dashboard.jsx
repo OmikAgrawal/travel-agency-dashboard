@@ -3,11 +3,13 @@ import axios from 'axios';
 import { Plus, MapPin, TrendingUp, TrendingDown } from 'lucide-react';
 import TripCard from '../components/TripCard';
 import AddTripModal from '../components/AddTripModal'; // 1. Import it
+import TripDetailsModal from '../components/TripDetailsModal';
 
 const Dashboard = () => {
     const [trips, setTrips] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false); // 2. Modal State
     const [loading, setLoading] = useState(true);
+    const [selectedTrip, setSelectedTrip] = useState(null);
 
 
     const fetchTrips = async () => {
@@ -29,6 +31,7 @@ const Dashboard = () => {
     if (loading) return <div className="p-10 text-center">Loading...</div>;
 
     return (
+        <>
         <div className="p-6 bg-gray-50 min-h-screen">
             {/* Header Section */}
             <div className="flex justify-between items-start mb-8">
@@ -57,8 +60,7 @@ const Dashboard = () => {
                     <TripCard
                         key={trip.id}
                         trip={trip}
-                        // onDelete={handleDelete} // We will write these functions next
-                        // onEdit={handleEdit}
+                        onClick={() => setSelectedTrip(trip)} // Set the trip to show modal
                     />
                 ))}
             </div>
@@ -68,6 +70,13 @@ const Dashboard = () => {
                 onTripAdded={fetchTrips} // 5. Refetch data after adding
             />
         </div>
+
+        <TripDetailsModal
+            trip={selectedTrip}
+            isOpen={!!selectedTrip}
+            onClose={() => setSelectedTrip(null)}
+        />
+     </>
     );
 };
 
@@ -83,4 +92,6 @@ const StatCard = ({ title, value, trend, up, color }) => (
     </div>
 );
 
+
 export default Dashboard;
+

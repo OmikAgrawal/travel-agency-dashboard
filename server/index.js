@@ -174,7 +174,7 @@ app.delete('/api/trips/:id', authorize, async (req, res) => {
 app.post("/api/trips/ai-generate", async (req, res) => {
 
     console.log("Body received:", req.body); // Check if this is empty or nested!
-    const { location, duration, criteria } = req.body;
+    const { location, duration, criteria, category, price} = req.body;
 
     if (!location || !duration) {
         return res.status(400).json({ error: "Missing location or duration" });
@@ -185,10 +185,10 @@ app.post("/api/trips/ai-generate", async (req, res) => {
             model: "gemini-3-flash-preview"
         });
 
-        const prompt = `Create a travel trip for ${location} for ${duration} days. 
-        Additional criteria: ${criteria}. 
+        const prompt = `Create a travel trip for ${location} for ${duration} days of ${category} under ${price} . 
+        criteria: ${criteria}.
         Return strictly JSON only, no introductory text: 
-        {"title": "...", "description": "...", "price": 0, "location": "...", "category": "Adventure"}`;
+        {"title": "...", "description": "...", "price": 0, "location": "...", "image_url": "..."}`;
 
         const result = await model.generateContent(prompt);
         const responseText = result.response.text();
@@ -199,13 +199,14 @@ app.post("/api/trips/ai-generate", async (req, res) => {
 
             // 3. Insert into DB (Ensure 'price' is a number)
             const newTrip = await pool.query(
-                "INSERT INTO trips (title, description, location, price, category) VALUES ($1, $2, $3, $4, $5) RETURNING *",
+                "INSERT INTO trips (title, description, location,image_url, price, category) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
                 [
                     tripData.title,
                     tripData.description,
                     tripData.location,
-                    Number(tripData.price) || 0, // Fallback to 0 if price isn't a number
-                    tripData.category || 'Adventure'
+                    tripData.image_url,
+                    Number(price),
+                    category
                 ]
             );
 
