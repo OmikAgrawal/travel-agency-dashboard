@@ -10,6 +10,39 @@ const Dashboard = () => {
     const [isModalOpen, setIsModalOpen] = useState(false); // 2. Modal State
     const [loading, setLoading] = useState(true);
     const [selectedTrip, setSelectedTrip] = useState(null);
+    const [tripToEdit, setTripToEdit] = useState(null); // Track the edit target
+
+    const handleDelete = async (id) => {
+        if (window.confirm("Are you sure you want to delete this trip?")) {
+            try {
+                const token = localStorage.getItem("token");
+                await axios.delete(`http://localhost:5000/api/trips/${id}`, {
+                    headers: { token }
+                });
+
+                // Refresh the list after deleting
+                fetchTrips();
+
+                // If the deleted trip was open in the details modal, close it
+                if (selectedTrip?.id === id) setSelectedTrip(null);
+
+            } catch (err) {
+                alert("Failed to delete the trip. Check console for details.");
+                console.error(err);
+            }
+        }
+    };
+
+    const handleEdit = (trip) => {
+        console.log("Setting trip to edit:", trip);
+        setTripToEdit(trip); // Load trip data
+        setIsModalOpen(true); // Open the same modal
+    };
+
+    const handleAddNew = () => {
+        setTripToEdit(null); // Clear data for fresh trip
+        setIsModalOpen(true);
+    };
 
 
     const fetchTrips = async () => {
@@ -40,10 +73,12 @@ const Dashboard = () => {
                     <p className="text-gray-500 text-sm">Track activity, trends, and popular destinations in real time</p>
                 </div>
                 <button
-                    onClick={() => setIsModalOpen(true)}
+                    onClick={handleAddNew}
                     className="bg-blue-600 text-white px-5 py-2.5 rounded-xl font-semibold flex items-center gap-2 hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all">
                     <Plus size={20} /> Create a trip
                 </button>
+
+
             </div>
 
             {/* Stats Cards Section (The 3 cards at the top) */}
@@ -60,14 +95,21 @@ const Dashboard = () => {
                     <TripCard
                         key={trip.id}
                         trip={trip}
-                        onClick={() => setSelectedTrip(trip)} // Set the trip to show modal
+                        onClick={() => setSelectedTrip(trip)}
+                        onEdit={handleEdit}
+                        onDelete={handleDelete}
                     />
                 ))}
             </div>
+
             <AddTripModal
                 isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                onTripAdded={fetchTrips} // 5. Refetch data after adding
+                editTrip={tripToEdit}
+                onClose={() => {
+                    setIsModalOpen(false);
+                    setTripToEdit(null); // Clear on close
+                }}
+                onTripAdded={fetchTrips}
             />
         </div>
 

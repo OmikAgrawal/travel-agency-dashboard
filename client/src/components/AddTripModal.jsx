@@ -1,85 +1,126 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { X } from 'lucide-react';
 
-const AddTripModal = ({ isOpen, onClose, onTripAdded }) => {
-    const [formData, setFormData] = useState({
+const AddTripModal = ({ isOpen, onClose, onTripAdded, editTrip }) => {
+    const initialState = {
         title: '',
         description: '',
         location: '',
         price: '',
         category: '',
         image_url: ''
-    });
+    };
+    const [formData, setFormData] = useState(initialState);
 
-    if (!isOpen) return null;
+    useEffect(() => {
+        if (isOpen) {
+            if (editTrip) {
+                // EDIT MODE: Fill the form with existing data
+                setFormData({
+                    title: editTrip.title || '',
+                    description: editTrip.description || '',
+                    location: editTrip.location || '',
+                    price: editTrip.price || '',
+                    image_url: editTrip.image_url || '',
+                    category: editTrip.category || ''
+                });
+            } else {
+                // CREATE MODE: Clear the form for a new entry
+                setFormData({
+                    title: '',
+                    description: '',
+                    location: '',
+                    price: '',
+                    image_url: '',
+                    category: ''
+                });
+            }
+        }
+    }, [editTrip, isOpen]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
             const token = localStorage.getItem("token");
-            await axios.post("http://localhost:5000/api/trips", formData, {
-                headers: { token }
-            });
-            onTripAdded(); // Refresh the list in the parent
-            onClose(); // Close the modal
+            const url = editTrip
+                ? `http://localhost:5000/api/trips/${editTrip.id}` // Update URL
+                : "http://localhost:5000/api/trips";             // Create URL
+
+            const method = editTrip ? "put" : "post";
+
+            await axios[method](url, formData, { headers: { token } });
+
+            onTripAdded(); // Refresh Dashboard
+            onClose();     // Close Modal
         } catch (err) {
-            alert("Error adding trip: " + err.response?.data?.error);
+            console.error(err);
+            alert("Error saving trip");
         }
     };
 
+    if (!isOpen) return null;
+
+
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-            <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl">
-                <div className="p-6 border-b flex justify-between items-center">
-                    <h2 className="text-xl font-bold text-gray-800">Add New Trip</h2>
-                    <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition"><X size={20}/></button>
-                </div>
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+            <div className="bg-white w-full max-w-lg rounded-3xl p-8 relative shadow-2xl">
+                <button onClick={onClose} className="absolute top-6 right-6 text-gray-400 hover:text-gray-600"><X /></button>
+                <h2 className="text-2xl font-bold mb-6">{editTrip ? "Edit Trip" : "Create New Trip"}</h2>
 
                 <form onSubmit={handleSubmit} className="p-6 space-y-4">
                     <input
+                        value={formData.title}
                         type="text" placeholder="Trip Title (e.g. Goa Escape)" required
                         className="w-full p-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
                         onChange={(e) => setFormData({...formData, title: e.target.value})}
                     />
                     <input
+                        value={formData.location}
                         type="text" placeholder="Location" required
                         className="w-full p-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
                         onChange={(e) => setFormData({...formData, location: e.target.value})}
                     />
                     <div className="flex gap-4">
                         <input
+                            value={formData.price}
                             type="number" placeholder="Price (₹)" required
                             className="w-1/2 p-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
                             onChange={(e) => setFormData({...formData, price: e.target.value})}
                         />
                         <select
+                            value={formData.category}
                             className="w-1/2 p-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
                             onChange={(e) => setFormData({...formData, category: e.target.value})}
                         >
-                            <option value="Adventure">Adventure</option>
-                            <option value="Beach">Beach</option>
-                            <option value="City">City</option>
-                            <option value="Luxury">Luxury</option>
+                            <option value="">Select your Vibe!!</option>
+                            <option value="Adventure and Exploration">Adventure and Exploration</option>
+                            <option value="Leisure and Relaxation">Leisure and Relaxation</option>
+                            <option value="Cultural and Educational">Cultural and Educational</option>
+                            <option value="Social and Celebration">Social and Celebration</option>
+                            <option value="Spiritual and Wellness">Spiritual and Wellness</option>
                         </select>
                     </div>
                     <input
+                        value={formData.image_url}
                         type="text" placeholder="Image URL"
                         className="w-full p-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
                         onChange={(e) => setFormData({...formData, image_url: e.target.value})}
                     />
                     <textarea
+                        value={formData.description}
                         placeholder="Short Description" rows="3"
                         className="w-full p-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
                         onChange={(e) => setFormData({...formData, description: e.target.value})}
                     ></textarea>
 
-                    <button type="submit" className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200">
-                        Save Trip
+                    <button className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition">
+                        {editTrip ? "Update Trip" : "Save Trip"}
                     </button>
                 </form>
             </div>
         </div>
+
     );
 };
 
