@@ -171,6 +171,21 @@ app.delete('/api/trips/:id', authorize, async (req, res) => {
     }
 });
 
+// GET all customers
+app.get('/api/customers', async (req, res) => {
+    try {
+        const allUsers = await pool.query(
+            "SELECT id, username, email, created_at FROM users ORDER BY created_at DESC"
+        );
+        res.json(allUsers.rows);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ error: "Could not fetch customers" });
+    }
+});
+
+
+//AI trip generations
 app.post("/api/trips/ai-generate", async (req, res) => {
 
     console.log("Body received:", req.body); // Check if this is empty or nested!

@@ -7,6 +7,7 @@ import { useState } from 'react'; // 1. Add useState
 import { Menu, X } from 'lucide-react'; // 2. Add Menu and X icons
 import Dashboard from './pages/Dashboard.jsx';
 import AITrips from "./pages/AITrips.jsx";
+import Customers from './pages/Customers';
 
 // A helper component to protect our private pages
 const PrivateRoute = ({ children }) => {
@@ -30,17 +31,19 @@ function App() {
 
     return (
         <Router>
-            <div className="flex min-h-screen bg-gray-100 w-full">
+            {/* 1. Make the wrapper exactly the screen height and hide its overflow */}
+            <div className="flex h-screen w-full bg-gray-100 overflow-hidden">
 
-                {/* The Sidebar (Always takes its 64px width on Large screens) */}
+                {/* The Sidebar */}
                 {isAuthenticated && (
                     <Sidebar isOpen={isSidebarOpen} closeSidebar={closeSidebar} />
                 )}
 
                 {/* The Main Content Area */}
-                <div className="flex-1 w-full relative">
+                {/* 2. Make this container scrollable independently */}
+                <div className="flex-1 flex flex-col h-full overflow-y-auto relative">
 
-                    {/* Hamburger Button: Moved slightly for better spacing */}
+                    {/* Mobile Hamburger Button */}
                     {isAuthenticated && (
                         <button
                             onClick={toggleSidebar}
@@ -50,15 +53,20 @@ function App() {
                         </button>
                     )}
 
-                    {/* Page Content: Added pt-20 (padding-top) for mobile to clear the button */}
-                    <main className={`p-8 ${isAuthenticated ? 'pt-20 lg:pt-8' : ''}`}>
+                    {/* 3. Page Content */}
+                    <main className={`p-8 w-full ${isAuthenticated ? 'pt-20 lg:pt-8' : ''}`}>
                         <Routes>
                             <Route path="/login" element={!isAuthenticated ? <Login /> : <Navigate to="/dashboard" />} />
 
-                            {/* All Protected Routes go inside here */}
                             <Route path="/dashboard" element={
                                 <PrivateRoute>
                                     <Dashboard />
+                                </PrivateRoute>
+                            } />
+
+                            <Route path="/customers" element={
+                                <PrivateRoute>
+                                    <Customers />
                                 </PrivateRoute>
                             } />
 
@@ -68,15 +76,6 @@ function App() {
                                 </PrivateRoute>
                             } />
 
-
-
-                            {/*<Route path="/trips" element={*/}
-                            {/*    <PrivateRoute>*/}
-                            {/*        <Dashboard />*/}
-                            {/*    </PrivateRoute>*/}
-                            {/*} />*/}
-
-                            {/* Default redirect */}
                             <Route path="*" element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} />} />
                         </Routes>
                     </main>
