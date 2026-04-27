@@ -37,7 +37,7 @@ const TripCard = ({ trip, onClick, onEdit, onDelete }) => {
                 {/* Bottom Row: Category and Actions */}
                 <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-50">
                     <span className="bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-xs font-medium">
-                        {trip.category || 'Adventure'}
+                        {trip.category}
                     </span>
 
                     <div className="flex gap-2">

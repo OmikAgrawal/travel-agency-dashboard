@@ -31,26 +31,15 @@ app.get('/', (req, res) => {
     res.send('API is working!');
 });
 
-// Test the database connection
-app.get('/api/test-db', async (req, res) => {
-    try {
-        const result = await pool.query('SELECT NOW()');
-        res.json({ message: "Success!", data: result.rows[0] });
-    } catch (err) {
-        // This will print the EXACT reason in your terminal (black screen)
-        console.error("DETAILED ERROR:", err.message);
-        res.status(500).json({ error: err.message });
-    }
-});
-
-// REGISTER ROUTE (To create your Admin account)
+// REGISTER ROUTE
 app.post('/api/auth/register', async (req, res) => {
     try {
-        const { username, email, password } = req.body;
+        const { username, email, password, role } = req.body;
+        const table = role === "admin" ? "admins" : "users";
 
-        // 1. Check if user exists
-        const user = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
-        if (user.rows.length > 0) return res.status(401).json({ error: "User already exists" });
+        // 1. Check if admin exists
+        const user = await pool.query(`SELECT * FROM ${table} WHERE email = $1`, [email]);
+        if (user.rows.length > 0) return res.status(401).json({ error: "Admin already exists" });
 
         // 2. Hash the password
         const saltRound = 10;
@@ -59,7 +48,7 @@ app.post('/api/auth/register', async (req, res) => {
 
         // 3. Insert into DB
         const newUser = await pool.query(
-            "INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING *",
+            `INSERT INTO ${table} (username, email, password) VALUES ($1, $2, $3) RETURNING *`,
             [username, email, bcryptPassword]
         );
 
@@ -70,13 +59,14 @@ app.post('/api/auth/register', async (req, res) => {
     }
 });
 
-// LOGIN ROUTE
+//LOGIN ROUTE
 app.post('/api/auth/login', async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const { email, password, role } = req.body;
+        const table = role === "admin" ? "admins" : "users";
 
         // 1. Find the user by email
-        const user = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
+        const user = await pool.query(`SELECT * FROM ${table} WHERE email = $1`, [email]);
 
         if (user.rows.length === 0) {
             return res.status(401).json({ error: "Invalid Credentials" });

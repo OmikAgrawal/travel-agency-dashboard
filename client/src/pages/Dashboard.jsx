@@ -11,6 +11,7 @@ const Dashboard = () => {
     const [loading, setLoading] = useState(true);
     const [selectedTrip, setSelectedTrip] = useState(null);
     const [tripToEdit, setTripToEdit] = useState(null); // Track the edit target
+    const user = localStorage.getItem("username");
 
     const handleDelete = async (id) => {
         if (window.confirm("Are you sure you want to delete this trip?")) {
@@ -69,7 +70,7 @@ const Dashboard = () => {
             {/* Header Section */}
             <div className="flex justify-between items-start mb-8">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-800">Welcome Omik 👋</h1>
+                    <h1 className="text-2xl font-bold text-gray-800">Welcome {user}👋</h1>
                     <p className="text-gray-500 text-sm">Track activity, trends, and popular destinations in real time</p>
                 </div>
                 <button
