@@ -1,12 +1,14 @@
 import React, {useEffect, useState} from "react";
 import TripCard from "../components/TripCard.jsx";
 import axios from "axios";
+import TripDetailsModal from "../components/TripDetailsModal.jsx";
 
 const Marketplace = () => {
     const [trips, setTrips] = useState([]);
     const [search, setSearch] = useState("");
     const [filter, setFilter] = useState("All");
     const [loading, setLoading] = useState(true);
+    const [selectedTrip, setSelectedTrip] = useState(null);
 
     const filteredTrips = trips.filter(trip => {
         const matchesSearch = trip.title.toLowerCase().includes(search.toLowerCase());
@@ -33,6 +35,7 @@ const Marketplace = () => {
     if (loading) return <div className="p-10 text-center">Loading...</div>;
 
     return (
+        <>
         <div className="p-8 bg-gray-50 min-h-screen">
             {/* Search and Category Bar */}
             <div className="flex flex-col md:flex-row gap-4 mb-10">
@@ -57,10 +60,21 @@ const Marketplace = () => {
             {/* Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                 {filteredTrips.map(trip => (
-                    <TripCard key={trip.id} trip={trip} />
+                    <TripCard
+                        key={trip.id}
+                        onClick={() => setSelectedTrip(trip)}
+                        trip={trip}
+                    />
                 ))}
             </div>
         </div>
+
+        <TripDetailsModal
+            trip={selectedTrip}
+            isOpen={!!selectedTrip}
+            onClose={() => setSelectedTrip(null)}
+        />
+        </>
     );
 };
 

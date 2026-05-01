@@ -229,6 +229,33 @@ app.post("/api/trips/ai-generate", async (req, res) => {
     }
 });
 
+app.post("/api/bookings", authorize, async (req, res) => {
+    const { trip_id } = req.body;
+    const user_id = req.user; // Extracted from JWT by authorize middleware
+
+    try {
+        // Check if already booked (optional)
+        const existing = await pool.query(
+            "SELECT * FROM bookings WHERE user_id = $1 AND trip_id = $2",
+            [user_id, trip_id]
+        );
+
+        if (existing.rows.length > 0) {
+            return res.status(400).json({ error: "You have already booked this trip!" });
+        }
+
+        const newBooking = await pool.query(
+            "INSERT INTO bookings (user_id, trip_id) VALUES ($1, $2) RETURNING *",
+            [user_id, trip_id]
+        );
+
+        res.json({ message: "Booking confirmed!", booking: newBooking.rows[0] });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send("Server Error");
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });

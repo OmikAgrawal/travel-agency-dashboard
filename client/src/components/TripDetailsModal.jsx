@@ -1,9 +1,35 @@
-import React from 'react';
+import React, {useContext, useState} from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar, MapPin, Info } from 'lucide-react';
+import { X, Calendar, MapPin, Info,CheckCircle } from 'lucide-react';
+import {AuthContext} from "../context/AuthContext.jsx";
+import axios from "axios";
 
 const TripDetailsModal = ({ trip, isOpen, onClose }) => {
-    if (!trip) return null;
+    const {role} = useContext(AuthContext);
+    const [bookingStatus, setBookingStatus] = useState(null); // 'loading', 'success', 'error'
+
+    const handleBooking = async () => {
+        setBookingStatus('loading');
+        try {
+            const token = localStorage.getItem("token");
+            await axios.post("http://localhost:5000/api/bookings",
+                { trip_id: trip.id },
+                { headers: { token }}
+            );
+            setBookingStatus('success');
+            // Optional: Close modal after 2 seconds on success
+            setTimeout(() => {
+                setBookingStatus(null);
+                onClose();
+            }, 2000);
+        } catch (err) {
+            alert(err.response?.data?.error || "Booking failed");
+            setBookingStatus('error');
+        }
+    };
+
+
+    if (!trip || !isOpen) return null;
 
     return (
         <AnimatePresence>
@@ -65,6 +91,21 @@ const TripDetailsModal = ({ trip, isOpen, onClose }) => {
                                     ))}
                                 </div>
                             </div>
+                            {role === 'user' && (
+                                <div className="mt-6 pt-6 border-t border-gray-100">
+                                    <button
+                                        onClick={handleBooking}
+                                        disabled={bookingStatus === 'loading' || bookingStatus === 'success'}
+                                        className={`w-full py-4 rounded-2xl font-bold text-white transition-all flex items-center justify-center gap-2 ${
+                                            bookingStatus === 'success' ? 'bg-green-500' : 'bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-200'
+                                        }`}
+                                    >
+                                        {bookingStatus === 'loading' && "Processing..."}
+                                        {bookingStatus === 'success' && <><CheckCircle size={20}/> Booked Successfully!</>}
+                                        {!bookingStatus && `Confirm Booking • ₹${trip.price}`}
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </motion.div>
                 </div>

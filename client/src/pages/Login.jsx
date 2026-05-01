@@ -23,7 +23,6 @@ const Login = () => {
 
             // Update the context
             login(res.data.token, res.data.username,role);
-            localStorage.setItem("role", role);
 
             // Redirect based on role
             window.location.href = role === "admin" ? "/dashboard" : "/marketplace";

@@ -1,8 +1,10 @@
-import React from 'react';
+import React, {useContext} from 'react';
 import { MapPin, Edit, Trash2 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import {AuthContext} from "../context/AuthContext.jsx";
 
 const TripCard = ({ trip, onClick, onEdit, onDelete }) => {
+    const {role} = useContext(AuthContext);
     return (
         <motion.div
             onClick={onClick}
@@ -40,20 +42,27 @@ const TripCard = ({ trip, onClick, onEdit, onDelete }) => {
                         {trip.category}
                     </span>
 
-                    <div className="flex gap-2">
+                    {role === "admin" &&
+                        (<div className="flex gap-2">
                         <button
-                            onClick={(e) => { e.stopPropagation(); onEdit(trip); }}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onEdit(trip);
+                            }}
                             className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                         >
-                            <Edit size={18} />
+                            <Edit size={18}/>
                         </button>
                         <button
-                            onClick={(e) => { e.stopPropagation(); onDelete(trip.id); }}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onDelete(trip.id);
+                            }}
                             className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                         >
-                            <Trash2 size={18} />
+                            <Trash2 size={18}/>
                         </button>
-                    </div>
+                    </div>)}
                 </div>
             </div>
         </motion.div>
