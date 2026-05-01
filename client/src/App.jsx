@@ -10,6 +10,7 @@ import AITrips from "./pages/AITrips.jsx";
 import Customers from './pages/Customers';
 import Marketplace from "./pages/Marketplace.jsx";
 import UserNavbar from "./components/UserNavbar.jsx";
+import MyBookings from "./pages/MyBookings.jsx";
 
 // A helper component to protect our private pages
 const PrivateRoute = ({ children }) => {
@@ -92,6 +93,11 @@ function App() {
                                     <AITrips />
                                 </PrivateRoute>
                             } />
+
+                            <Route
+                                path="/my-bookings"
+                                element={isAuthenticated && role === 'user' ? <MyBookings /> : <Navigate to="/login" />}
+                            />
 
                             <Route path="*" element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} />} />
                         </Routes>

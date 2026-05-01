@@ -256,6 +256,34 @@ app.post("/api/bookings", authorize, async (req, res) => {
     }
 });
 
+// GET user-specific bookings
+app.get("/api/my-bookings", authorize, async (req, res) => {
+    try {
+        const user_id = req.user; // From the JWT via authorize middleware
+
+        const userBookings = await pool.query(
+            `SELECT 
+                bookings.id as booking_id, 
+                bookings.status, 
+                bookings.booking_date, 
+                trips.title, 
+                trips.location, 
+                trips.price, 
+                trips.image_url 
+             FROM bookings 
+             JOIN trips ON bookings.trip_id = trips.id 
+             WHERE bookings.user_id = $1 
+             ORDER BY bookings.booking_date DESC`,
+            [user_id]
+        );
+
+        res.json(userBookings.rows);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send("Server Error fetching bookings");
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
