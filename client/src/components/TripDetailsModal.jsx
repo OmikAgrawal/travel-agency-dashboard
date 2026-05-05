@@ -23,8 +23,13 @@ const TripDetailsModal = ({ trip, isOpen, onClose }) => {
                 onClose();
             }, 2000);
         } catch (err) {
-            alert(err.response?.data?.error || "Booking failed");
-            setBookingStatus('error');
+            setBookingStatus('error'); // Add an 'error' state
+            const msg = err.response?.data?.error || "Error";
+
+            // Show error message on the button itself for 2 seconds
+            setTimeout(() => {
+                setBookingStatus(null);
+            }, 2000);
         }
     };
 
@@ -103,6 +108,7 @@ const TripDetailsModal = ({ trip, isOpen, onClose }) => {
                                         {bookingStatus === 'loading' && "Processing..."}
                                         {bookingStatus === 'success' && <><CheckCircle size={20}/> Booked Successfully!</>}
                                         {!bookingStatus && `Confirm Booking • ₹${trip.price}`}
+                                        {bookingStatus === 'error' && "Already Booked!"}
                                     </button>
                                 </div>
                             )}
