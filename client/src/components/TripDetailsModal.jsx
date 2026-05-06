@@ -11,11 +11,7 @@ const TripDetailsModal = ({ trip, isOpen, onClose }) => {
 
     // Dynamic Image Array: Uses the main image + 2 related Unsplash categories
     // In a real scenario, you'd store an array of URLs in your DB
-    const tripImages = [
-        trip?.image_url,
-        `https://source.unsplash.com/featured/?${trip?.location},nature`,
-        `https://source.unsplash.com/featured/?${trip?.location},architecture`
-    ].filter(Boolean);
+    const tripImages =  trip?.images || [];
 
     const nextImage = (e) => {
         e.stopPropagation();

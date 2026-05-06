@@ -6,6 +6,8 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import authorize from "./middleware/authorize.js";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import fetchDestinationImages from "./imageService.js";
+
 
 dotenv.config(); // This looks for .env in the folder where you run the command
 
@@ -103,7 +105,7 @@ app.post('/api/trips', authorize, async (req, res) => {
 
         // 2. Insert into PostgreSQL using parameterized queries ($1, $2, etc.)
         const newTrip = await pool.query(
-            "INSERT INTO trips (title, description, location, price, image_url, category) VALUES($1, $2, $3, $4, $5, $6) RETURNING *",
+            "INSERT INTO trips (title, description, location, price, category) VALUES($1, $2, $3, $4, $5) RETURNING *",
             [title, description, location, price, image_url, category]
         );
 
@@ -130,11 +132,11 @@ app.get('/api/trips', async (req, res) => {
 app.put('/api/trips/:id', authorize, async (req, res) => {
     try {
         const { id } = req.params; // Get ID from URL
-        const { title, description, location, price, image_url, category } = req.body;
+        const { title, description, location, price, category } = req.body;
 
         const updatedTrip = await pool.query(
-            "UPDATE trips SET title = $1, description = $2, location = $3, price = $4, image_url = $5, category = $6 WHERE id = $7 RETURNING *",
-            [title, description, location, price, image_url, category, id]
+            "UPDATE trips SET title = $1, description = $2, location = $3, price = $4, category = $5 WHERE id = $6 RETURNING *",
+            [title, description, location, price, category, id]
         );
 
         if (updatedTrip.rows.length === 0) {
@@ -194,6 +196,7 @@ app.post("/api/trips/ai-generate", async (req, res) => {
         Duration: ${duration} days.
         Category: ${category}.
         Price: ${price}.
+        Criteria: ${criteria}.
         Format the response strictly as a JSON object with:
         {
           "title": "A catchy name",
@@ -213,19 +216,21 @@ app.post("/api/trips/ai-generate", async (req, res) => {
         if (jsonMatch) {
             const tripData = JSON.parse(jsonMatch[0]);
 
+            const imageUrls = await fetchDestinationImages(location);
+
             console.log(tripData);
 
             // 3. Insert into DB (Ensure 'price' is a number)
             const newTrip = await pool.query(
-                "INSERT INTO trips (title, description, location,image_url, price, category,itinerary) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *",
+                "INSERT INTO trips (title, description, location, price, category,itinerary,images) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *",
                 [
                     tripData.title,
                     tripData.description,
                     tripData.location,
-                    tripData.image_url,
                     Number(price),
                     category,
-                    JSON.stringify(tripData.itinerary)
+                    JSON.stringify(tripData.itinerary),
+                    imageUrls
                 ]
             );
 
@@ -283,7 +288,7 @@ app.get("/api/my-bookings", authorize, async (req, res) => {
                 trips.title, 
                 trips.location, 
                 trips.price, 
-                trips.image_url 
+                trips.images
              FROM bookings 
              JOIN trips ON bookings.trip_id = trips.id 
              WHERE bookings.user_id = $1 

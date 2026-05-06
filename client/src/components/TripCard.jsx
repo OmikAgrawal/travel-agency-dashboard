@@ -14,7 +14,7 @@ const TripCard = ({ trip, onClick, onEdit, onDelete }) => {
             {/* Image Section */}
             <div className="relative h-48 overflow-hidden">
                 <img
-                    src={trip.image_url || 'https://images.unsplash.com/photo-1506744038136-46273834b3fb'}
+                    src={trip.images[0] || 'https://images.unsplash.com/photo-1506744038136-46273834b3fb'}
                     className="w-full h-full object-cover"
                     alt={trip.title}
                 />
