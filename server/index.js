@@ -190,10 +190,21 @@ app.post("/api/trips/ai-generate", async (req, res) => {
             model: "gemini-3-flash-preview"
         });
 
-        const prompt = `Create a travel trip for ${location} for ${duration} days of ${category} under ${price} . 
-        criteria: ${criteria}.
-        Return strictly JSON only, no introductory text: 
-        {"title": "...", "description": "...", "price": 0, "location": "...", "image_url": "..."}`;
+        const prompt = `Generate a highly detailed travel itinerary for ${location}.
+        Duration: ${duration} days.
+        Category: ${category}.
+        Price: ${price}.
+        Format the response strictly as a JSON object with:
+        {
+          "title": "A catchy name",
+          "description": "Short summary",
+          "price": 0, 
+          "location": "..."
+          "itinerary": [
+            {"day": 1, "activities": "morning, afternoon, evening plans"},
+            ... (repeat for exactly ${duration} days)
+          ]
+        }`;
 
         const result = await model.generateContent(prompt);
         const responseText = result.response.text();
@@ -202,16 +213,19 @@ app.post("/api/trips/ai-generate", async (req, res) => {
         if (jsonMatch) {
             const tripData = JSON.parse(jsonMatch[0]);
 
+            console.log(tripData);
+
             // 3. Insert into DB (Ensure 'price' is a number)
             const newTrip = await pool.query(
-                "INSERT INTO trips (title, description, location,image_url, price, category) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
+                "INSERT INTO trips (title, description, location,image_url, price, category,itinerary) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *",
                 [
                     tripData.title,
                     tripData.description,
                     tripData.location,
                     tripData.image_url,
                     Number(price),
-                    category
+                    category,
+                    JSON.stringify(tripData.itinerary)
                 ]
             );
 
