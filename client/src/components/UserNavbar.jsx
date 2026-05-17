@@ -1,5 +1,5 @@
 import React from 'react';
-import { LogOut, ShoppingBag, Map } from 'lucide-react';
+import {LogOut, ShoppingBag, Map, PlaneTakeoff} from 'lucide-react';
 
 const UserNavbar = () => {
     const handleLogout = () => {
@@ -10,8 +10,8 @@ const UserNavbar = () => {
     return (
         <nav className="w-full bg-white border-b border-gray-100 px-8 py-4 flex justify-between items-center shadow-sm">
             <div className="flex items-center gap-2 font-bold text-xl text-blue-600">
-                <Map size={28} />
-                <span>TravelMarket</span>
+                <PlaneTakeoff size={24} className="text-blue-500" />
+                <span>TravelPro</span>
             </div>
 
             <div className="flex items-center gap-8 font-medium text-gray-600">
