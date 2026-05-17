@@ -40,7 +40,7 @@ const MyBookings = () => {
                         <div key={booking.booking_id} className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden flex flex-col md:flex-row items-center p-4 gap-6 hover:shadow-md transition-shadow">
                             {/* Trip Image */}
                             <img
-                                src={booking.image_url}
+                                src={booking.images[0]}
                                 alt={booking.title}
                                 className="w-full md:w-48 h-32 object-cover rounded-2xl"
                             />

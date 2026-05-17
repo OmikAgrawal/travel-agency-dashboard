@@ -101,12 +101,12 @@ app.post('/api/auth/login', async (req, res) => {
 app.post('/api/trips', authorize, async (req, res) => {
     try {
         // 1. Destructure the data coming from the frontend (req.body)
-        const { title, description, location, price, image_url, category } = req.body;
+        const { title, description, location, price, category, itinerary, images } = req.body;
 
         // 2. Insert into PostgreSQL using parameterized queries ($1, $2, etc.)
         const newTrip = await pool.query(
-            "INSERT INTO trips (title, description, location, price, category) VALUES($1, $2, $3, $4, $5) RETURNING *",
-            [title, description, location, price, image_url, category]
+            "INSERT INTO trips (title, description, location, price, category, itinerary, images) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *",
+            [title, description, location, Number(price), category, JSON.stringify(itinerary),images]
         );
 
         // 3. Send back the newly created trip as JSON
@@ -132,11 +132,11 @@ app.get('/api/trips', async (req, res) => {
 app.put('/api/trips/:id', authorize, async (req, res) => {
     try {
         const { id } = req.params; // Get ID from URL
-        const { title, description, location, price, category } = req.body;
+        const { title, description, location, price, category, itinerary, images } = req.body;
 
         const updatedTrip = await pool.query(
-            "UPDATE trips SET title = $1, description = $2, location = $3, price = $4, category = $5 WHERE id = $6 RETURNING *",
-            [title, description, location, price, category, id]
+            "UPDATE trips SET title = $1, description = $2, location = $3, price = $4, category = $5, itinerary = $6, images = $7 WHERE id = $8 RETURNING *",
+            [title, description, location, price, category, JSON.stringify(itinerary), images, id]
         );
 
         if (updatedTrip.rows.length === 0) {
@@ -217,8 +217,6 @@ app.post("/api/trips/ai-generate", async (req, res) => {
             const tripData = JSON.parse(jsonMatch[0]);
 
             const imageUrls = await fetchDestinationImages(location);
-
-            console.log(tripData);
 
             // 3. Insert into DB (Ensure 'price' is a number)
             const newTrip = await pool.query(
