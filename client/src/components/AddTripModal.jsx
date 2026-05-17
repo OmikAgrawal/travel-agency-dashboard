@@ -89,6 +89,27 @@ const AddTripModal = ({ isOpen, onClose, tripToEdit, onSave }) => {
                         />
                     </div>
 
+                    {/* Price & Vibe Selectors (Restored) */}
+                    <div className="grid grid-cols-2 gap-4">
+                        <input
+                            type="number"
+                            className="p-4 border rounded-2xl w-full"
+                            placeholder="Price (₹)"
+                            value={formData.price}
+                            onChange={(e) => setFormData({...formData, price: e.target.value})}
+                        />
+                        <select
+                            className="p-4 border rounded-2xl w-full bg-white"
+                            value={formData.category}
+                            onChange={(e) => setFormData({...formData, category: e.target.value})}
+                        >
+                            <option value="Adventure">Adventure</option>
+                            <option value="Beach">Beach</option>
+                            <option value="City">City</option>
+                            <option value="Nature">Nature</option>
+                        </select>
+                    </div>
+
                     {/* Multiple Images Section */}
                     <div className="space-y-3">
                         <label className="text-sm font-bold text-gray-500 flex items-center gap-2">
