@@ -1,6 +1,7 @@
 import React, { useState, useContext } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
+import { Eye, EyeOff } from 'lucide-react'; // 1. Import the eye icons
 
 const Login = () => {
     const [role, setRole] = useState("user");
@@ -8,12 +9,12 @@ const Login = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [action, setAction] = useState("login");
+    const [showPassword, setShowPassword] = useState(false); // 2. State for eye toggle
     const { login } = useContext(AuthContext);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            // Determine endpoint based on action
             const endpoint = action === "register" ? "register" : "login";
             const payload = action === "register"
                 ? { username, email, password, role }
@@ -21,12 +22,14 @@ const Login = () => {
 
             const res = await axios.post(`http://localhost:5000/api/auth/${endpoint}`, payload);
 
-            // Update the context
-            login(res.data.token, res.data.username,role);
-
-            // Redirect based on role
-            window.location.href = role === "admin" ? "/dashboard" : "/marketplace";
-
+            if (action === "register") {
+                alert("Registration successful! Please sign in with your credentials.");
+                setUsername("");
+                setAction("login");
+            } else {
+                login(res.data.token, res.data.username, role);
+                window.location.href = role === "admin" ? "/dashboard" : "/marketplace";
+            }
         } catch (err) {
             alert(err.response?.data?.error || `${action} Failed`);
         }
@@ -53,6 +56,7 @@ const Login = () => {
                         type="text"
                         placeholder="Username"
                         className="w-full p-3 border rounded mb-4 focus:outline-blue-500"
+                        value={username}
                         onChange={(e) => setUsername(e.target.value)}
                         required
                     />
@@ -65,13 +69,25 @@ const Login = () => {
                     onChange={(e) => setEmail(e.target.value)}
                     required
                 />
-                <input
-                    type="password"
-                    placeholder="Password"
-                    className="w-full p-3 border rounded mb-6 focus:outline-blue-500"
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                />
+
+                {/* 3. Password Input Wrapper Container */}
+                <div className="relative mb-6">
+                    <input
+                        type={showPassword ? "text" : "password"} // 4. Dynamic type attribute
+                        placeholder="Password"
+                        className="w-full p-3 border rounded pr-12 focus:outline-blue-500"
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                    />
+                    {/* 5. Absolute Positioned Toggle Button */}
+                    <button
+                        type="button" // CRITICAL: Keeps button from firing the form submission!
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                        {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                    </button>
+                </div>
 
                 <button
                     type="submit"
