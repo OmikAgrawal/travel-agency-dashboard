@@ -3,7 +3,7 @@ import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 
 const Login = () => {
-    const [role, setRole] = useState("user"); // Keep lowercase for easier logic
+    const [role, setRole] = useState("user");
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");

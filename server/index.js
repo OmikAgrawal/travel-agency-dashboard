@@ -83,7 +83,7 @@ app.post('/api/auth/login', async (req, res) => {
 
         // 3. Generate the JWT "Passport"
         const token = jwt.sign(
-            { id: user.rows[0].id },
+            { id: user.rows[0].id}, //payload
             process.env.JWT_SECRET,
             { expiresIn: "1h" }
         );
@@ -93,6 +93,66 @@ app.post('/api/auth/login', async (req, res) => {
     } catch (err) {
         console.error(err.message);
         res.status(500).send("Server error");
+    }
+});
+
+
+// GET dashboard statistics (Admin only)
+app.get("/api/admin/stats", authorize, async (req, res) => {
+    try{
+        // 1. Live Users Stats (Comparing accounts created this month vs last month)
+        const usersQuery = `
+            SELECT 
+                COUNT(*) FILTER (WHERE created_at >= NOW() - INTERVAL '30 days') as current_month,
+                COUNT(*) FILTER (WHERE created_at >= NOW() - INTERVAL '60 days' AND created_at < NOW() - INTERVAL '30 days') as last_month
+            FROM users;
+        `;
+
+        // 2. Live Bookings Stats (Comparing reservations made this month vs last month)
+        const bookingsQuery = `
+            SELECT 
+                COUNT(*) FILTER (WHERE booking_date >= NOW() - INTERVAL '30 days') as current_month,
+                COUNT(*) FILTER (WHERE booking_date >= NOW() - INTERVAL '60 days' AND booking_date < NOW() - INTERVAL '30 days') as last_month
+            FROM bookings;
+        `;
+
+        // 3. Total Packages (Simple total count)
+        const tripsQuery = `SELECT COUNT(*) FROM trips;`;
+
+        const [usersRes, bookingsRes, tripsRes] = await Promise.all([
+            pool.query(usersQuery),
+            pool.query(bookingsQuery),
+            pool.query(tripsQuery)
+        ]);
+
+        // Helper function to calculate percentage change safely
+        const calculateTrend = (current, last) => {
+            current = parseInt(current, 10) || 0;
+            last = parseInt(last, 10) || 0;
+
+            if (last === 0) return current > 0 ? "+100%" : "0%";
+
+            const change = ((current - last) / last) * 100;
+            const sign = change >= 0 ? "+" : "";
+            return `${sign}${change.toFixed(0)}%`;
+        };
+
+        const uData = usersRes.rows[0];
+        const bData = bookingsRes.rows[0];
+
+        res.json({
+            totalUsers: parseInt(uData.current_month, 10) + parseInt(uData.last_month, 10), // Cumulative total
+            userTrend: calculateTrend(uData.current_month, uData.last_month),
+
+            livePackages: parseInt(tripsRes.rows[0].count, 10),
+
+            activeBookings: parseInt(bData.current_month, 10),
+            bookingTrend: calculateTrend(bData.current_month, bData.last_month)
+        });
+
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send("Server Error processing live metrics");
     }
 });
 

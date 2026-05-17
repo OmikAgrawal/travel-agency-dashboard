@@ -6,6 +6,13 @@ import AddTripModal from '../components/AddTripModal';
 import TripDetailsModal from '../components/TripDetailsModal';
 
 const Dashboard = () => {
+    const [stats, setStats] = useState({
+        totalUsers: 0,
+        userTrend: "0%",
+        livePackages: 0,
+        activeBookings: 0,
+        bookingTrend: "0%"
+    });
     const [trips, setTrips] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -13,18 +20,29 @@ const Dashboard = () => {
     const [tripToEdit, setTripToEdit] = useState(null);
     const user = localStorage.getItem("username");
 
-    const fetchTrips = async () => {
+    const fetchDashboardData = async () => {
+        const token = localStorage.getItem("token");
+        const headers = { headers: { token } };
+
+        // 1. Fetch Trips independently
         try {
-            const token = localStorage.getItem("token");
-            const res = await axios.get("http://localhost:5000/api/trips", {
-                headers: { token }
-            });
-            setTrips(res.data);
-            setLoading(false);
+            const tripsRes = await axios.get("http://localhost:5000/api/trips", headers);
+            setTrips(tripsRes.data);
         } catch (err) {
-            console.error(err);
-            setLoading(false);
+            console.error("Error fetching trips inventory:", err);
         }
+
+        // 2. Fetch Stats independently
+        try {
+            const statsRes = await axios.get("http://localhost:5000/api/admin/stats", headers);
+            setStats(statsRes.data);
+        } catch (err) {
+            console.error("Stats blocked or failed:", err.response?.status);
+            // Fallback default state so it doesn't break the application
+            setStats({ totalUsers: 0, livePackages: 0, activeBookings: 0 });
+        }
+
+        setLoading(false);
     };
 
     // 🚀 NEW: Integrated Save Logic for Create & Update
@@ -50,7 +68,7 @@ const Dashboard = () => {
             // Clean up and refresh
             setIsModalOpen(false);
             setTripToEdit(null);
-            fetchTrips();
+            fetchDashboardData();
         } catch (err) {
             alert(err.response?.data?.error || "Error saving trip");
             console.error(err);
@@ -64,7 +82,7 @@ const Dashboard = () => {
                 await axios.delete(`http://localhost:5000/api/trips/${id}`, {
                     headers: { token }
                 });
-                fetchTrips();
+                fetchDashboardData();
                 if (selectedTrip?.id === id) setSelectedTrip(null);
             } catch (err) {
                 alert("Failed to delete trip");
@@ -83,7 +101,7 @@ const Dashboard = () => {
         setIsModalOpen(true);
     };
 
-    useEffect(() => { fetchTrips(); }, []);
+    useEffect(() => { fetchDashboardData(); }, []);
 
     if (loading) return <div className="p-10 text-center text-blue-600 font-bold">Initializing Dashboard...</div>;
 
@@ -102,10 +120,26 @@ const Dashboard = () => {
                     </button>
                 </div>
 
+                {/* Dynamic Stats Cards Section */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-                    <StatCard title="Total Users" value="12,450" trend="+12%" up={true} color="green" />
-                    <StatCard title="Live Packages" value={trips.length} trend="+5%" up={true} color="blue" />
-                    <StatCard title="Active Bookings" value="520" trend="+2%" up={true} color="green" />
+                    <StatCard
+                        title="Total Users"
+                        value={stats.totalUsers.toLocaleString()}
+                        trend={`${stats.userTrend}`}
+                        up={!stats.userTrend.includes('-')} // Automatically sets true if positive or 0
+                    />
+                    <StatCard
+                        title="Live Packages"
+                        value={stats.livePackages}
+                        trend="Live"
+                        up={true}
+                    />
+                    <StatCard
+                        title="Active Bookings"
+                        value={stats.activeBookings}
+                        trend={`${stats.bookingTrend}`}
+                        up={!stats.bookingTrend.includes('-')}
+                    />
                 </div>
 
                 <h3 className="text-xl font-bold text-gray-800 mb-6">Inventory Management</h3>
