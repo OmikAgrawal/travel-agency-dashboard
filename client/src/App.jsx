@@ -23,6 +23,17 @@ const PrivateRoute = ({ children }) => {
     return isAuthenticated ? children : <Navigate to="/login" />;
 };
 
+const isTokenValid = (token) => {
+    if (!token) return false;
+    try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        // payload.exp is in seconds, Date.now() is in milliseconds
+        return payload.exp * 1000 > Date.now();
+    } catch (e) {
+        return false;
+    }
+};
+
 function App() {
     const { isAuthenticated, loading, role } = useContext(AuthContext);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false); // 3. The "Switch"
@@ -63,7 +74,14 @@ function App() {
                     {/* 3. Page Content */}
                     <main className={`p-8 w-full ${isAuthenticated ? 'pt-20 lg:pt-8' : ''}`}>
                         <Routes>
-                            <Route path="/login" element={!isAuthenticated ? <Login /> : <Navigate to= {role === "admin" ? "/dashboard" : "/marketplace"} />} />
+                            <Route
+                                path="/"
+                                element={isTokenValid(localStorage.getItem("token")) ? <Navigate to="/dashboard" /> : <Navigate to="/login" />}
+                            />
+
+                            <Route
+                                path="/login"
+                                element={!isAuthenticated ? <Login /> : <Navigate to= {role === "admin" ? "/dashboard" : "/marketplace"} />} />
 
                             <Route
                                 path="/dashboard"

@@ -22,6 +22,7 @@ const Dashboard = () => {
 
     const fetchDashboardData = async () => {
         const token = localStorage.getItem("token");
+        // If the token is valid, proceed with fetching data safely
         const headers = { headers: { token } };
 
         // 1. Fetch Trips independently
@@ -38,8 +39,13 @@ const Dashboard = () => {
             setStats(statsRes.data);
         } catch (err) {
             console.error("Stats blocked or failed:", err.response?.status);
-            // Fallback default state so it doesn't break the application
-            setStats({ totalUsers: 0, livePackages: 0, activeBookings: 0 });
+            setStats({
+                totalUsers: 0,
+                userTrend: "0%",
+                livePackages: 0,
+                activeBookings: 0,
+                bookingTrend: "0%"
+            });
         }
 
         setLoading(false);
@@ -101,7 +107,43 @@ const Dashboard = () => {
         setIsModalOpen(true);
     };
 
-    useEffect(() => { fetchDashboardData(); }, []);
+    useEffect(() => {
+        const checkTokenAndFetch = async () => {
+            const token = localStorage.getItem("token");
+
+            // 1. Proactive Session Expiration Check
+            if (token) {
+                try {
+                    // Decode payload (the middle block of the JWT string)
+                    const payload = JSON.parse(atob(token.split('.')[1]));
+                    const isExpired = payload.exp * 1000 < Date.now();
+
+                    if (isExpired) {
+                        console.log("Session expired detected on mount. Clearing storage...");
+                        localStorage.removeItem("token");
+                        localStorage.removeItem("username");
+                        localStorage.removeItem("role");
+                        alert("Your session has expired. Please log in again.");
+                        window.location.href = "/login";
+                        return; // Stop execution completely; do not fetch data
+                    }
+                } catch (e) {
+                    console.error("Malformed authentication token:", e);
+                    window.location.href = "/login";
+                    return;
+                }
+            } else {
+                // No token present at all
+                window.location.href = "/login";
+                return;
+            }
+
+            // 2. Token is safe and active -> Proceed with fetching metrics
+            await fetchDashboardData();
+        };
+
+        checkTokenAndFetch();
+    }, []);
 
     if (loading) return <div className="p-10 text-center text-blue-600 font-bold">Initializing Dashboard...</div>;
 
@@ -126,7 +168,7 @@ const Dashboard = () => {
                         title="Total Users"
                         value={stats.totalUsers.toLocaleString()}
                         trend={`${stats.userTrend}`}
-                        up={!stats.userTrend.includes('-')} // Automatically sets true if positive or 0
+                        up={!stats.userTrend?.includes('-')} // Automatically sets true if positive or 0
                     />
                     <StatCard
                         title="Live Packages"
@@ -138,7 +180,7 @@ const Dashboard = () => {
                         title="Active Bookings"
                         value={stats.activeBookings}
                         trend={`${stats.bookingTrend}`}
-                        up={!stats.bookingTrend.includes('-')}
+                        up={!stats.bookingTrend?.includes('-')}
                     />
                 </div>
 
