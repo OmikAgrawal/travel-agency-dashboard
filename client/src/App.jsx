@@ -11,6 +11,7 @@ import Customers from './pages/Customers';
 import Marketplace from "./pages/Marketplace.jsx";
 import UserNavbar from "./components/UserNavbar.jsx";
 import MyBookings from "./pages/MyBookings.jsx";
+import GrowthAnalysis from "./pages/GrowthAnalysis.jsx";
 
 // A helper component to protect our private pages
 const PrivateRoute = ({ children }) => {
@@ -109,6 +110,12 @@ function App() {
                             <Route path="/AITrips" element={
                                 <PrivateRoute>
                                     <AITrips />
+                                </PrivateRoute>
+                            } />
+
+                            <Route path="/GrowthAnalysis" element={
+                                <PrivateRoute>
+                                    <GrowthAnalysis />
                                 </PrivateRoute>
                             } />
 

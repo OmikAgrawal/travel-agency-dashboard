@@ -4,6 +4,7 @@ import { AuthContext } from '../context/AuthContext';
 import { Eye, EyeOff, PlaneTakeoff } from 'lucide-react';
 
 const Login = () => {
+
     const [role, setRole] = useState("user");
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
@@ -28,6 +29,7 @@ const Login = () => {
                 setAction("login");
             } else {
                 login(res.data.token, res.data.username, role);
+
                 window.location.href = role === "admin" ? "/dashboard" : "/marketplace";
             }
         } catch (err) {

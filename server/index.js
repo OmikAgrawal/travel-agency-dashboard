@@ -361,6 +361,47 @@ app.get("/api/my-bookings", authorize, async (req, res) => {
     }
 });
 
+app.get("/api/admin/analytics", authorize, async (req, res) => {
+    try {
+
+        // 1. Fetch User Growth over the last 7 months for Area Chart
+        const userGrowthQuery = `
+            SELECT 
+                TO_CHAR(created_at, 'Short Month') as month,
+                COUNT(*) as counts
+            FROM users
+            WHERE created_at >= NOW() - INTERVAL '6 months'
+            GROUP BY TO_CHAR(created_at, 'Short Month'), DATE_TRUNC('month', created_at)
+            ORDER BY DATE_TRUNC('month', created_at) ASC;
+        `;
+
+        // 2. Fetch Booking Distribution by Travel Category/Vibe for Bar Chart
+        const categoryDistributionQuery = `
+            SELECT 
+                t.category,
+                COUNT(b.id) as bookings,
+                SUM(t.price) as revenue
+            FROM bookings b
+            JOIN trips t ON b.trip_id = t.id
+            GROUP BY t.category;
+        `;
+
+        const [userGrowthRes, catDistRes] = await Promise.all([
+            pool.query(userGrowthQuery),
+            pool.query(categoryDistributionQuery)
+        ]);
+
+        res.json({
+            userGrowth: userGrowthRes.rows, // Array of { month: 'Jan', counts: 15 }
+            categoryMetrics: catDistRes.rows // Array of { category: 'Beach', bookings: 45, revenue: 12000 }
+        });
+
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send("Server Error processing analytical matrix");
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });

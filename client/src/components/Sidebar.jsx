@@ -1,4 +1,4 @@
-import { LayoutDashboard, PlaneTakeoff, Users, Settings, LogOut } from 'lucide-react';
+import { LayoutDashboard, PlaneTakeoff, Users, Settings, LogOut, Compass } from 'lucide-react';
 import { useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { Link, useLocation } from 'react-router-dom';
@@ -9,8 +9,9 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
 
     const menuItems = [
         { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
-        { icon: Users, label: 'Customers', path: '/customers' },
+        { icon: Compass, label:'TrendingUp', path: '/GrowthAnalysis' },
         { icon: PlaneTakeoff, label: 'AI Trips', path: '/AITrips' },
+        { icon: Users, label: 'Customers', path: '/customers' },
     ];
 
     return (
